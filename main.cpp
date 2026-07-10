@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 
@@ -13,9 +14,58 @@ public:
 };
 
 vector<Student> students;
+const string filename = "students.csv";
+
+void saveStudentsToFile() {
+    ofstream file(filename);
+
+    if (!file.is_open()) {
+        cout << "Could not save data to file.\n";
+        return;
+    }
+
+    for (int i = 0; i < students.size(); i++) {
+        file << students[i].id << ","
+             << students[i].name << ","
+             << students[i].age << ","
+             << students[i].grade << "\n";
+    }
+
+    file.close();
+}
+
+void loadStudentsFromFile() {
+    ifstream file(filename);
+
+    if (!file.is_open()) {
+        return;
+    }
+
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
+        Student s;
+
+        int firstComma = line.find(',');
+        int secondComma = line.find(',', firstComma + 1);
+        int thirdComma = line.find(',', secondComma + 1);
+
+        s.id = stoi(line.substr(0, firstComma));
+        s.name = line.substr(firstComma + 1, secondComma - firstComma - 1);
+        s.age = stoi(line.substr(secondComma + 1, thirdComma - secondComma - 1));
+        s.grade = stod(line.substr(thirdComma + 1));
+
+        students.push_back(s);
+    }
+
+    file.close();
+}
 
 void displayMenu() {
-    cout << "\n===== Student Management System =====\n";
+    cout << "\n Student Management System \n";
     cout << "1. Add Student\n";
     cout << "2. View All Students\n";
     cout << "3. Search Student\n";
@@ -41,6 +91,7 @@ void addStudent() {
     cin >> s.grade;
 
     students.push_back(s);
+    saveStudentsToFile();
     cout << "Student added successfully!\n";
 }
 
@@ -50,13 +101,13 @@ void viewStudents() {
         return;
     }
 
-    cout << "\n--- Student List ---\n";
-    for (size_t i = 0; i < students.size(); i++) {
+    cout << "\n Student List \n";
+    for (int i = 0; i < students.size(); i++) {
         cout << "ID: " << students[i].id << "\n";
         cout << "Name: " << students[i].name << "\n";
         cout << "Age: " << students[i].age << "\n";
         cout << "Grade: " << students[i].grade << "\n";
-        cout << "--------------------\n";
+        cout << "  \n";
     }
 }
 
@@ -65,7 +116,7 @@ void searchStudent() {
     cout << "\nEnter student ID to search: ";
     cin >> id;
 
-    for (size_t i = 0; i < students.size(); i++) {
+    for (int i = 0; i < students.size(); i++) {
         if (students[i].id == id) {
             cout << "\nStudent found!\n";
             cout << "ID: " << students[i].id << "\n";
@@ -84,7 +135,7 @@ void updateStudent() {
     cout << "\nEnter student ID to update: ";
     cin >> id;
 
-    for (size_t i = 0; i < students.size(); i++) {
+    for (int i = 0; i < students.size(); i++) {
         if (students[i].id == id) {
             cout << "Enter new name: ";
             cin >> students[i].name;
@@ -95,7 +146,8 @@ void updateStudent() {
             cout << "Enter new grade: ";
             cin >> students[i].grade;
 
-            cout << "Student updated successfully!\n";
+            saveStudentsToFile();
+            cout << "Student updated successfully \n";
             return;
         }
     }
@@ -108,10 +160,11 @@ void deleteStudent() {
     cout << "\nEnter student ID to delete: ";
     cin >> id;
 
-    for (size_t i = 0; i < students.size(); i++) {
+    for (int i = 0; i < students.size(); i++) {
         if (students[i].id == id) {
             students.erase(students.begin() + i);
-            cout << "Student deleted successfully!\n";
+            saveStudentsToFile();
+            cout << "Student deleted successfully \n";
             return;
         }
     }
@@ -121,6 +174,8 @@ void deleteStudent() {
 
 int main() {
     int choice;
+
+    loadStudentsFromFile();
 
     while (true) {
         displayMenu();
@@ -143,10 +198,10 @@ int main() {
                 deleteStudent();
                 break;
             case 6:
-                cout << "Exiting program. Goodbye!\n";
+                cout << "Exiting program.\n";
                 return 0;
             default:
-                cout << "Invalid option. Please try again.\n";
+                cout << "Invalid option,try again.\n";
         }
     }
 
